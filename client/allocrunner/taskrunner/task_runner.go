@@ -112,6 +112,10 @@ type TaskRunner struct {
 	killErr     error
 	killErrLock sync.Mutex
 
+	// shutdownDelayCtx is a context from the alloc runner which will
+	// tell us to exit early from shutdown_delay
+	shutdownDelayCtx context.Context
+
 	// Logger is the logger for the task runner.
 	logger log.Logger
 
@@ -287,6 +291,15 @@ type Config struct {
 
 	// startConditionMetCtx is done when TR should start the task
 	StartConditionMetCtx <-chan struct{}
+
+	// ShutdownDelayCtx is a context from the alloc runner which will
+	// tell us to exit early from shutdown_delay
+	ShutdownDelayCtx context.Context
+
+	// shutdownDelayCancelFn is the matching CancelFunc for
+	// ShutdownDelayCtx, for use in testing. It is not embedded in the
+	// TaskRunner
+	shutdownDelayCancelFn context.CancelFunc
 }
 
 func NewTaskRunner(config *Config) (*TaskRunner, error) {
@@ -342,6 +355,7 @@ func NewTaskRunner(config *Config) (*TaskRunner, error) {
 		maxEvents:              defaultMaxEvents,
 		serversContactedCh:     config.ServersContactedCh,
 		startConditionMetCtx:   config.StartConditionMetCtx,
+		shutdownDelayCtx:       config.ShutdownDelayCtx,
 	}
 
 	// Create the logger based on the allocation ID
@@ -895,6 +909,8 @@ func (tr *TaskRunner) handleKill(resultCh <-chan *drivers.ExitResult) *drivers.E
 		select {
 		case result := <-resultCh:
 			return result
+		case <-tr.shutdownDelayCtx.Done():
+			break
 		case <-time.After(delay):
 		}
 	}
