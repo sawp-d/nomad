@@ -22,6 +22,8 @@ NOMAD_BINARY=$4
 # Get IP from metadata service
 if [ "$CLOUD" = "gce" ]; then
   IP_ADDRESS=$(curl -H "Metadata-Flavor: Google" http://metadata/computeMetadata/v1/instance/network-interfaces/0/ip)
+elif [ "$CLOUD" = "azure"]; then
+  IP_ADDRESS=$(curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0?api-version=2021-02-01" | jq -r ".privateIpAddress")
 else
   IP_ADDRESS=$(curl http://instance-data/latest/meta-data/local-ipv4)
 fi

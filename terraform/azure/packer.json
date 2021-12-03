@@ -13,12 +13,13 @@
     "subscription_id": "{{ user `azure_subscription_id` }}",
     "managed_image_resource_group_name": "{{ user `azure_resource_group` }}",
     "location": "East US",
+    "vm_size": "Standard_B2s",
     "image_publisher": "Canonical",
     "image_offer": "UbuntuServer",
-    "image_sku": "16.04-LTS",
+    "image_sku": "18.04-LTS",
     "os_type": "Linux",
     "ssh_username": "packer",
-    "managed_image_name": "hashistack",
+    "managed_image_name": "hashistack2",
     "azure_tags": {
       "Product": "Hashistack"
     }
